@@ -2769,4 +2769,17 @@ static bool ignore_ = false;
     writer.EndObject();
   }
 
+  void saveToJson(JsonWriter & writer,
+      const ledger::RewardsInternalsInfo& info) {
+    writer.StartObject();
+
+    writer.String("payment_id");
+    writer.String(info.payment_id.c_str());
+
+    writer.String("key_info_seed");
+    writer.String(info.key_info_seed.c_str());
+
+    writer.EndObject();
+  }
+
 }  // namespace braveledger_bat_helper

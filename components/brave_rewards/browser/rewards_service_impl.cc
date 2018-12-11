@@ -747,6 +747,20 @@ void RewardsServiceImpl::OnGetAutoContributeProps(
   callback.Run(std::move(auto_contri_props));
 }
 
+void RewardsServiceImpl::OnGetRewardsInternalsInfo(
+    const GetRewardsInternalsInfoCallback& callback,
+    const std::string& json_info) {
+  ledger::RewardsInternalsInfo info;
+  info.loadFromJson(json_info);
+
+  auto rewards_internals_info =
+    std::make_unique<brave_rewards::RewardsInternalsInfo>();
+  rewards_internals_info->payment_id = info.payment_id;
+  rewards_internals_info->key_info_seed = info.key_info_seed;
+
+  callback.Run(std::move(rewards_internals_info));
+}
+
 void RewardsServiceImpl::GetAutoContributeProps(
     const GetAutoContributePropsCallback& callback) {
   if (!Connected())
@@ -2218,6 +2232,12 @@ bool RewardsServiceImpl::CheckImported() {
 
 void RewardsServiceImpl::SetBackupCompleted() {
   profile_->GetPrefs()->SetBoolean(prefs::kRewardsBackupSucceeded, true);
+}
+
+void RewardsServiceImpl::GetRewardsInternalsInfo(
+    const GetRewardsInternalsInfoCallback& callback) {
+  bat_ledger_->GetRewardsInternalsInfo(base::BindOnce(
+      &RewardsServiceImpl::OnGetRewardsInternalsInfo, AsWeakPtr(), callback));
 }
 
 void RewardsServiceImpl::OnDonate(

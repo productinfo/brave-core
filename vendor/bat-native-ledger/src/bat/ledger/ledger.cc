@@ -659,6 +659,38 @@ bool AutoContributeProps::loadFromJson(const std::string& json) {
   return !error;
 }
 
+RewardsInternalsInfo::RewardsInternalsInfo() { }
+
+RewardsInternalsInfo::~RewardsInternalsInfo() { }
+
+const std::string RewardsInternalsInfo::ToJson() const {
+  std::string json;
+  braveledger_bat_helper::saveToJsonString(*this, json);
+  return json;
+}
+
+bool RewardsInternalsInfo::loadFromJson(const std::string& json) {
+  rapidjson::Document d;
+  d.Parse(json.c_str());
+
+  // has parser errors or wrong types
+  bool error = d.HasParseError();
+
+  if (false == error) {
+    error = !(d.HasMember("payment_id") &&
+        d["payment_id"].IsString() &&
+        d.HasMember("key_info_seed") &&
+        d["key_info_seed"].IsString());
+  }
+
+  if (false == error) {
+    payment_id = d["payment_id"].GetString();
+    key_info_seed = d["key_info_seed"].GetString();
+  }
+
+  return !error;
+}
+
 bool Ledger::IsMediaLink(const std::string& url, const std::string& first_party_url, const std::string& referrer) {
   return braveledger_bat_get_media::BatGetMedia::GetLinkType(url, first_party_url, referrer) == TWITCH_MEDIA_TYPE;
 }

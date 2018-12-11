@@ -335,4 +335,11 @@ void BatLedgerImpl::HasSufficientBalanceToReconcile(
   std::move(callback).Run(ledger_->HasSufficientBalanceToReconcile());
 }
 
+void BatLedgerImpl::GetRewardsInternalsInfo(
+    GetRewardsInternalsInfoCallback callback) {
+  ledger::RewardsInternalsInfo info;
+  ledger_->GetRewardsInternalsInfo(info);
+  std::move(callback).Run(info.ToJson());
+}
+
 } // namespace bat_ledger

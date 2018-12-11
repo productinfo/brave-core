@@ -1010,6 +1010,18 @@ void LedgerImpl::SetWalletInfo(
   bat_state_->SetWalletInfo(info);
 }
 
+void LedgerImpl::GetRewardsInternalsInfo(ledger::RewardsInternalsInfo& info) {
+  // Retrieve the payment id.
+  info.payment_id = bat_state_->GetPaymentId();
+
+  // Retrieve the key info seed.
+  std::string key_info_seed;
+  const braveledger_bat_helper::WALLET_INFO_ST wallet_info =
+      bat_state_->GetWalletInfo();
+  if (wallet_info.keyInfoSeed_.size() > 0)
+    info.key_info_seed = braveledger_bat_helper::getBase64(wallet_info.keyInfoSeed_);
+}
+
 const braveledger_bat_helper::WALLET_PROPERTIES_ST&
 LedgerImpl::GetWalletProperties() const {
   return bat_state_->GetWalletProperties();

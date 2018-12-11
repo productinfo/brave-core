@@ -298,6 +298,8 @@ class LedgerImpl : public ledger::Ledger,
   double GetDefaultContributionAmount() override;
   bool HasSufficientBalanceToReconcile() override;
 
+  void GetRewardsInternalsInfo(ledger::RewardsInternalsInfo& info) override;
+
  private:
   void AddRecurringPayment(const std::string& publisher_id, const double& value) override;
   void OnLoad(const ledger::VisitData& visit_data, const uint64_t& current_time) override;
