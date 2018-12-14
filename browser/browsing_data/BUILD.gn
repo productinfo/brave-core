@@ -1,0 +1,10 @@
+source_set("browsing_data") {
+  sources = [
+    "brave_clear_browsing_data.cc",
+    "brave_clear_browsing_data.h",
+  ]
+
+  deps = [
+    "//chrome/browser",
+  ]
+}

@@ -4,6 +4,7 @@
 
 #include "chrome/browser/ui/browser_command_controller.h"
 #include "chrome/browser/ui/browser_content_setting_bubble_model_delegate.h"
+#include "brave/browser/browsing_data/brave_clear_browsing_data.h"
 #include "brave/browser/ui/brave_browser_content_setting_bubble_model_delegate.h"
 #include "brave/browser/ui/brave_browser_command_controller.h"
 #include "brave/components/omnibox/browser/brave_location_bar_model_impl.h"

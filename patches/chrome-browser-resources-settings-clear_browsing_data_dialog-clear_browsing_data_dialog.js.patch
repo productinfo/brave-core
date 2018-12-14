@@ -1,0 +1,80 @@
+diff --git a/chrome/browser/resources/settings/clear_browsing_data_dialog/clear_browsing_data_dialog.js b/chrome/browser/resources/settings/clear_browsing_data_dialog/clear_browsing_data_dialog.js
+index ba8db3241392d66e429a66dba47a5b740f3dfd28..ef8afbeace3a6c835426b3a9ccc97e937a89702b 100644
+--- a/chrome/browser/resources/settings/clear_browsing_data_dialog/clear_browsing_data_dialog.js
++++ b/chrome/browser/resources/settings/clear_browsing_data_dialog/clear_browsing_data_dialog.js
+@@ -145,6 +145,24 @@ Polymer({
+     dialogOpenedTime_: {
+       type: Number,
+       value: 0,
++    },
++
++    /** @private */
++    clearButtonHidden_: {
++      type: Boolean,
++      value: false,
++    },
++
++    /** @private */
++    saveButtonDisabled_: {
++      type: Boolean,
++      value: true,
++    },
++
++    /** @private */
++    saveButtonHidden_: {
++      type: Boolean,
++      value: true,
+     }
+   },
+ 
+@@ -211,6 +229,8 @@ Polymer({
+     if (!tab)
+       return;
+     this.clearButtonDisabled_ = this.getSelectedDataTypes_(tab).length == 0;
++    this.clearButtonHidden_ = (tab.id == 'on-exit-tab');
++    this.updateSaveButtonState(tab);
+   },
+ 
+   /**
+@@ -443,4 +463,41 @@ Polymer({
+   shouldShowFooter_: function() {
+     return this.diceEnabled_ && !!this.syncStatus && !!this.syncStatus.signedIn;
+   },
++
++  /**
++   * Checks if currently selected data types don't differ from their
++   * corresponding prefs values and updates Save button accordingly.
++   * @private
++   */
++  updateSaveButtonState: function (tab) {
++    this.saveButtonHidden_ = (tab.id != 'on-exit-tab');
++    if (this.saveButtonHidden_)
++      return;
++    const checkboxes = tab.querySelectorAll('settings-checkbox');
++    for (let checkbox of checkboxes) {
++      if (checkbox.checked != this.get(checkbox.pref.key, this.prefs).value) {
++        this.saveButtonDisabled_ = false;
++        return;
++      }
++    }
++    this.saveButtonDisabled_ = true;
++  },
++
++  /**
++   * Saves on exit settings selections.
++   * @private
++   */
++  saveOnExitSettings_: function () {
++    const tab = this.$.tabs.selectedItem;
++    if (tab.id != 'on-exit-tab')
++      return;
++    const checkboxes = tab.querySelectorAll('settings-checkbox');
++    checkboxes.forEach((checkbox) => {
++      if (checkbox.checked != this.get(checkbox.pref.key, this.prefs).value)
++        checkbox.sendPrefChange();
++    });
++    this.saveButtonDisabled_ = true;
++    if (!this.clearingInProgress_)
++      this.$.clearBrowsingDataDialog.close();
++  }
+ });

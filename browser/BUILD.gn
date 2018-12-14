@@ -125,6 +125,7 @@ source_set("browser") {
     "//content/public/browser",
     "//content/public/common",
     "//services/service_manager/embedder",
+    "browsing_data",
     "download",
     "extensions",
     "importer",

@@ -1,0 +1,99 @@
+diff --git a/chrome/browser/resources/settings/clear_browsing_data_dialog/clear_browsing_data_dialog.html b/chrome/browser/resources/settings/clear_browsing_data_dialog/clear_browsing_data_dialog.html
+index 1a086904cc3c93cb0ff6e0ad0eab0de850638591..dfa28f86fdf53fe1f6a319f9a8129f022b1d01b5 100644
+--- a/chrome/browser/resources/settings/clear_browsing_data_dialog/clear_browsing_data_dialog.html
++++ b/chrome/browser/resources/settings/clear_browsing_data_dialog/clear_browsing_data_dialog.html
+@@ -117,6 +117,7 @@
+             selected="{{prefs.browser.last_clear_browsing_data_tab.value}}">
+           <paper-tab id="basicTabTitle">$i18n{basicPageTitle}</paper-tab>
+           <paper-tab id="advancedTabTitle">$i18n{advancedPageTitle}</paper-tab>
++          <paper-tab id="onExitTabTitle">$i18n{onExitPageTitle}</paper-tab>
+         </paper-tabs>
+       </div>
+       <div slot="body">
+@@ -242,6 +243,68 @@
+                 disabled="[[clearingInProgress_]]">
+             </settings-checkbox>
+           </div>
++          <div id="on-exit-tab">
++            <settings-checkbox id="browsingCheckboxOnExit"
++                pref="{{prefs.browser.clear_data.browsing_history_on_exit}}"
++                label="$i18n{clearBrowsingHistory}"
++                sub-label="[[counters_.browsing_history]]"
++                hidden="[[isSupervised_]]"
++                no-set-pref>
++            </settings-checkbox>
++            <settings-checkbox id="downloadCheckboxOnExit"
++                pref="{{prefs.browser.clear_data.download_history_on_exit}}"
++                label="$i18n{clearDownloadHistory}"
++                sub-label="[[counters_.download_history]]"
++                hidden="[[isSupervised_]]"
++                no-set-pref>
++            </settings-checkbox>
++            <settings-checkbox id="cookiesCheckboxOnExit"
++                class="cookies-checkbox"
++                pref="{{prefs.browser.clear_data.cookies_on_exit}}"
++                label="$i18n{clearCookies}"
++                sub-label="[[counters_.cookies]]"
++                no-set-pref>
++            </settings-checkbox>
++            <settings-checkbox id="cacheCheckboxOnExit"
++                class="cache-checkbox"
++                pref="{{prefs.browser.clear_data.cache_on_exit}}"
++                label="$i18n{clearCache}"
++                sub-label="[[counters_.cache]]"
++                no-set-pref>
++            </settings-checkbox>
++            <settings-checkbox id="passwordsCheckboxOnExit"
++                pref="{{prefs.browser.clear_data.passwords_on_exit}}"
++                label="$i18n{clearPasswords}"
++                sub-label="[[counters_.passwords]]"
++                no-set-pref>
++            </settings-checkbox>
++            <settings-checkbox id="formDataCheckboxOnExit"
++                pref="{{prefs.browser.clear_data.form_data_on_exit}}"
++                label="$i18n{clearFormData}"
++                sub-label="[[counters_.form_data]]"
++                no-set-pref>
++            </settings-checkbox>
++            <settings-checkbox id="siteSettingsCheckboxOnExit"
++                pref="{{prefs.browser.clear_data.site_settings_on_exit}}"
++                label="[[siteSettingsLabel_(
++                   '$i18nPolymer{siteSettings}',
++                   '$i18nPolymer{contentSettings}')]]"
++                sub-label="[[counters_.site_settings]]"
++                no-set-pref>
++            </settings-checkbox>
++            <settings-checkbox id="hostedAppDataCheckboxOnExit"
++                pref="{{prefs.browser.clear_data.hosted_apps_data_on_exit}}"
++                label="$i18n{clearHostedAppData}"
++                sub-label="[[counters_.hosted_apps_data]]"
++                no-set-pref>
++            </settings-checkbox>
++            <settings-checkbox id="mediaLicensesCheckboxOnExit"
++                pref="{{prefs.browser.clear_data.media_licenses_on_exit}}"
++                label="$i18n{clearMediaLicenses}"
++                sub-label="[[counters_.media_licenses]]"
++                no-set-pref>
++            </settings-checkbox>
++          </div>
+         </iron-pages>
+       </div>
+       <div slot="button-container">
+@@ -252,9 +315,16 @@
+         <paper-button id="clearBrowsingDataConfirm"
+             class="action-button" on-click="clearBrowsingData_"
+             disabled="[[isClearButtonDisabled_(clearingInProgress_,
+-                                               clearButtonDisabled_)]]">
++                                               clearButtonDisabled_)]]"
++            hidden="[[clearButtonHidden_]]">
+             $i18n{clearData}
+         </paper-button>
++        <paper-button id="saveOnExitSettingsConfirm"
++            class="action-button" on-click="saveOnExitSettings_"
++            disabled="[[saveButtonDisabled_]]"
++            hidden="[[saveButtonHidden_]]">
++            $i18n{save}
++        </paper-button>
+       </div>
+       <div slot="footer"
+           hidden="[[!shouldShowFooter_(syncStatus.signedIn, diceEnabled_)]]">

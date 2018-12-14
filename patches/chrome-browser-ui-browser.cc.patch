@@ -1,0 +1,14 @@
+diff --git a/chrome/browser/ui/browser.cc b/chrome/browser/ui/browser.cc
+index 6e0ce3191b697c1f45ae9fd5b73679f50c131cd5..b46546f5a8c511ff524902e3d13c69528de27ee4 100644
+--- a/chrome/browser/ui/browser.cc
++++ b/chrome/browser/ui/browser.cc
+@@ -555,6 +555,9 @@ Browser::~Browser() {
+   // because the InstantController destructor depends on this profile.
+   instant_controller_.reset();
+ 
++  // Clear browsing data on exit, if needed.
++  content::BraveClearBrowsingData::ClearOnExit(profile_);
++
+   // The system incognito profile should not try be destroyed using
+   // ProfileDestroyer::DestroyProfileWhenAppropriate(). This profile can be
+   // used, at least, by the user manager window. This window is not a browser,
