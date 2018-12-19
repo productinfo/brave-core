@@ -8,6 +8,12 @@ namespace brave_rewards {
 
 RewardsInternalsInfo::RewardsInternalsInfo() {}
 
+RewardsInternalsInfo::RewardsInternalsInfo(const RewardsInternalsInfo& info)
+    : payment_id(info.payment_id),
+      key_info_seed(info.key_info_seed),
+      current_reconciles(info.current_reconciles) {
+}
+
 RewardsInternalsInfo::~RewardsInternalsInfo() {}
 
 }  // namespace brave_rewards

@@ -757,6 +757,13 @@ void RewardsServiceImpl::OnGetRewardsInternalsInfo(
     std::make_unique<brave_rewards::RewardsInternalsInfo>();
   rewards_internals_info->payment_id = info.payment_id;
   rewards_internals_info->key_info_seed = info.key_info_seed;
+  for (auto& item : info.current_reconciles) {
+    RewardsInternalsInfo::CurrentReconcileInfo current_reconcile_info;
+    current_reconcile_info.viewing_id = item.second.viewing_id;
+    current_reconcile_info.retry_level = item.second.retry_level;
+    rewards_internals_info->current_reconciles[item.first] =
+        current_reconcile_info;
+  }
 
   callback.Run(std::move(rewards_internals_info));
 }

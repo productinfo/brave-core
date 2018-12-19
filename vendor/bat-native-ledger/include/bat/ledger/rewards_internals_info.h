@@ -10,13 +10,20 @@ namespace ledger {
 LEDGER_EXPORT struct RewardsInternalsInfo {
   RewardsInternalsInfo();
   ~RewardsInternalsInfo();
-  RewardsInternalsInfo(const RewardsInternalsInfo& info) = default;
+  RewardsInternalsInfo(const RewardsInternalsInfo& info);
 
   const std::string ToJson() const;
   bool loadFromJson(const std::string& json);
 
+  struct CurrentReconcileInfo {
+    std::string viewing_id;
+    int retry_level;
+  };
+
   std::string payment_id;
   std::string key_info_seed;
+
+  std::map<std::string, CurrentReconcileInfo> current_reconciles;
 };
 
 }  // namespace ledger

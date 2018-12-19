@@ -5,6 +5,7 @@
 #ifndef BRAVE_COMPONENTS_BRAVE_REWARDS_BROWSER_REWARDS_INTERNALS_INFO_H_
 #define BRAVE_COMPONENTS_BRAVE_REWARDS_BROWSER_REWARDS_INTERNALS_INFO_H_
 
+#include <map>
 #include <string>
 
 namespace brave_rewards {
@@ -12,10 +13,17 @@ namespace brave_rewards {
 struct RewardsInternalsInfo {
   RewardsInternalsInfo();
   ~RewardsInternalsInfo();
-  RewardsInternalsInfo(const RewardsInternalsInfo& info) = default;
+  RewardsInternalsInfo(const RewardsInternalsInfo& info);
+
+  struct CurrentReconcileInfo {
+    std::string viewing_id;
+    int retry_level;
+  };
 
   std::string payment_id;
   std::string key_info_seed;
+
+  std::map<std::string, CurrentReconcileInfo> current_reconciles;
 };
 
 }  // namespace brave_rewards

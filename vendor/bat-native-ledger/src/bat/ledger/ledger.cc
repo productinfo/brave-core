@@ -661,6 +661,11 @@ bool AutoContributeProps::loadFromJson(const std::string& json) {
 
 RewardsInternalsInfo::RewardsInternalsInfo() { }
 
+RewardsInternalsInfo::RewardsInternalsInfo(const RewardsInternalsInfo& info)
+    : payment_id(info.payment_id),
+      key_info_seed(info.key_info_seed),
+      current_reconciles(info.current_reconciles) { }
+
 RewardsInternalsInfo::~RewardsInternalsInfo() { }
 
 const std::string RewardsInternalsInfo::ToJson() const {
@@ -677,15 +682,24 @@ bool RewardsInternalsInfo::loadFromJson(const std::string& json) {
   bool error = d.HasParseError();
 
   if (false == error) {
-    error = !(d.HasMember("payment_id") &&
-        d["payment_id"].IsString() &&
-        d.HasMember("key_info_seed") &&
-        d["key_info_seed"].IsString());
+    error = !(d.HasMember("payment_id") && d["payment_id"].IsString() &&
+              d.HasMember("key_info_seed") && d["key_info_seed"].IsString() &&
+              d.HasMember("current_reconciles") &&
+              d["current_reconciles"].IsObject());
   }
 
   if (false == error) {
     payment_id = d["payment_id"].GetString();
     key_info_seed = d["key_info_seed"].GetString();
+
+    for (const auto& i : d["current_reconciles"].GetObject()) {
+      auto value = i.value.GetObject();
+      CurrentReconcileInfo current_reconcile_info;
+      current_reconcile_info.viewing_id = value["viewing_id"].GetString();
+      current_reconcile_info.retry_level = value["viewing_id"].GetInt();
+      current_reconciles.insert(
+          std::make_pair(i.name.GetString(), current_reconcile_info));
+    }
   }
 
   return !error;
