@@ -6,10 +6,30 @@
 #include "chrome/browser/search/search.h"
 #include "content/public/browser/browser_url_handler.h"
 
-#if defined(OS_MACOSX)
+#if defined(OS_WIN)
+#include "brave/browser/brave_browser_main_parts_win.h"
+#undef ChromeBrowserMainPartsWin
+#define ChromeBrowserMainPartsWin BraveBrowserMainPartsWin
+#elif defined(OS_MACOSX)
 #include "brave/browser/brave_browser_main_parts_mac.h"
 #undef ChromeBrowserMainPartsMac
 #define ChromeBrowserMainPartsMac BraveBrowserMainPartsMac
+#elif defined(OS_LINUX)
+#include "brave/browser/brave_browser_main_parts_linux.h"
+#undef ChromeBrowserMainPartsLinux
+#define ChromeBrowserMainPartsLinux BraveBrowserMainPartsLinux
+#elif defined(OS_ANDROID)
+#include "brave/browser/brave_browser_main_parts_android.h"
+#undef ChromeBrowserMainPartsAndroid
+#define ChromeBrowserMainPartsAndroid BraveBrowserMainPartsAndroid
+#elif defined(OS_POSIX)
+#include "brave/browser/brave_browser_main_parts_posix.h"
+#undef ChromeBrowserMainPartsPosix
+#define ChromeBrowserMainPartsPosix BraveBrowserMainPartsPosix
+#else
+#include "brave/browser/brave_browser_main_parts.h"
+#undef ChromeBrowserMainParts
+#define ChromeBrowserMainParts BraveBrowserMainParts
 #endif
 
 #if defined(OS_LINUX)

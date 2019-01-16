@@ -1,33 +1,51 @@
 /* This Source Code Form is subject to the terms of the Mozilla Public
-* License, v. 2.0. If a copy of the MPL was not distributed with this file,
-* You can obtain one at http://mozilla.org/MPL/2.0/. */
+ * License, v. 2.0. If a copy of the MPL was not distributed with this file,
+ * You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 #include "brave/browser/browsing_data/brave_clear_browsing_data.h"
+#include "base/run_loop.h"
+#include "base/scoped_observer.h"
+#include "chrome/browser/browser_process.h"
 #include "chrome/browser/browsing_data/chrome_browsing_data_remover_delegate.h"
 #include "chrome/browser/profiles/profile.h"
-#include "chrome/browser/ui/browser.h"
-#include "chrome/browser/ui/browser_list.h"
+#include "chrome/browser/profiles/profile_manager.h"
 #include "chrome/common/pref_names.h"
-#include "components/prefs/pref_service.h"
 #include "components/browsing_data/core/pref_names.h"
+#include "components/prefs/pref_service.h"
+#include "content/public/browser/browsing_data_remover.h"
 
 namespace {
 
-// Gets the count of sessions with the given |profile|. Off-the-record sessions
-// aren't counted as they clean up after themselves.
-bool IsLastActiveSessionForProfile(Profile* profile) {
-  BrowserList* list = BrowserList::GetInstance();
-  int count =
-      std::count_if(list->begin(), list->end(), [profile](Browser* browser) {
-        return !browser->profile()->IsOffTheRecord() &&
-               browser->profile()->IsSameProfile(profile);
-      });
-  return (count == 0);
-}
+using content::BraveClearBrowsingData;
 
-bool GetClearBrowsingDataOnExitSettings(const Profile* profile,
-                                        int& remove_mask,
-                                        int& origin_mask) {
+class BrowsingDataRemovalWatcher
+    : public content::BrowsingDataRemover::Observer {
+ public:
+  BrowsingDataRemovalWatcher() : observer_(this) {}
+
+  void ClearBrowsingDataForLoadedProfiles(
+      BraveClearBrowsingData::OnExitTestingCallback* testing_callback);
+
+  // BrowsingDataRemover::Observer implementation.
+  void OnBrowsingDataRemoverDone() override;
+
+ private:
+  bool GetClearBrowsingDataOnExitSettings(const Profile* profile,
+                                          int& remove_mask,
+                                          int& origin_mask);
+  void Wait();
+
+  int num_profiles_to_clear_ = 0;
+  base::RunLoop run_loop_;
+  ScopedObserver<content::BrowsingDataRemover,
+                 content::BrowsingDataRemover::Observer>
+      observer_;
+};
+
+bool BrowsingDataRemovalWatcher::GetClearBrowsingDataOnExitSettings(
+    const Profile* profile,
+    int& remove_mask,
+    int& origin_mask) {
   const PrefService* prefs = profile->GetPrefs();
   remove_mask = 0;
   origin_mask = 0;
@@ -69,52 +87,69 @@ bool GetClearBrowsingDataOnExitSettings(const Profile* profile,
 
   if (prefs->GetBoolean(browsing_data::prefs::kDeleteSiteSettingsOnExit))
     remove_mask |=
-      ChromeBrowsingDataRemoverDelegate::DATA_TYPE_CONTENT_SETTINGS;
+        ChromeBrowsingDataRemoverDelegate::DATA_TYPE_CONTENT_SETTINGS;
 
   return (remove_mask != 0);
 }
 
-} // namespace
+void BrowsingDataRemovalWatcher::ClearBrowsingDataForLoadedProfiles(
+    BraveClearBrowsingData::OnExitTestingCallback* testing_callback) {
+  ProfileManager* profile_manager = g_browser_process->profile_manager();
+  DCHECK(profile_manager);
+
+  std::vector<Profile*> profiles = profile_manager->GetLoadedProfiles();
+  for (Profile* profile : profiles) {
+    if (profile->IsOffTheRecord())
+      continue;
+    int remove_mask;
+    int origin_mask;
+    if (!GetClearBrowsingDataOnExitSettings(profile, remove_mask, origin_mask))
+      continue;
+    ++num_profiles_to_clear_;
+    content::BrowsingDataRemover* remover =
+        content::BrowserContext::GetBrowsingDataRemover(profile);
+    observer_.Add(remover);
+    if (testing_callback)
+      testing_callback->BeforeClearOnExitRemoveData(remover, remove_mask,
+                                                    origin_mask);
+    remover->RemoveAndReply(base::Time(), base::Time::Max(), remove_mask,
+                            origin_mask, this);
+  }
+
+  Wait();
+}
+
+void BrowsingDataRemovalWatcher::Wait() {
+  if (num_profiles_to_clear_ > 0)
+    run_loop_.Run();
+}
+
+void BrowsingDataRemovalWatcher::OnBrowsingDataRemoverDone() {
+  --num_profiles_to_clear_;
+  if (num_profiles_to_clear_ > 0)
+    return;
+
+  observer_.RemoveAll();
+  run_loop_.Quit();
+}
+
+}  // namespace
 
 namespace content {
 
 BraveClearBrowsingData::OnExitTestingCallback*
     BraveClearBrowsingData::on_exit_testing_callback_ = nullptr;
 
-//static
-void BraveClearBrowsingData::ClearOnExit(Profile* profile) {
-  DCHECK(profile);
-
-  // Off-the-record profiles clean up after themselves.
-  if (profile->IsOffTheRecord())
-    return;
-
-  // Check if any settings to clear data on exit have been turned on.
-  int remove_mask = 0;
-  int origin_mask = 0;
-  if (!GetClearBrowsingDataOnExitSettings(profile, remove_mask, origin_mask))
-    return;
-
-  // Check if this is the last browser for this profile.
-  if (!IsLastActiveSessionForProfile(profile))
-    return;
-
-  // Get data remover for this profile.
-  content::BrowsingDataRemover* remover =
-    content::BrowserContext::GetBrowsingDataRemover(profile);
-
-  // If testing, let the test decide if it will do the actual removal and wait.
-  if (!on_exit_testing_callback_ ||
-      !on_exit_testing_callback_->BeforeClearOnExitRemoveData(
-          remover, remove_mask, origin_mask))
-    remover->Remove(base::Time(), base::Time::Max(), remove_mask, origin_mask);
+// static
+void BraveClearBrowsingData::ClearOnExit() {
+  BrowsingDataRemovalWatcher watcher;
+  watcher.ClearBrowsingDataForLoadedProfiles(on_exit_testing_callback_);
 }
 
-//static
+// static
 void BraveClearBrowsingData::SetOnExitTestingCallback(
     OnExitTestingCallback* callback) {
   on_exit_testing_callback_ = callback;
 }
 
-} // namespace content
-
+}  // namespace content

@@ -1,63 +1,54 @@
 diff --git a/chrome/browser/resources/settings/clear_browsing_data_dialog/clear_browsing_data_dialog.js b/chrome/browser/resources/settings/clear_browsing_data_dialog/clear_browsing_data_dialog.js
-index ba8db3241392d66e429a66dba47a5b740f3dfd28..ef8afbeace3a6c835426b3a9ccc97e937a89702b 100644
+index ba8db3241392d66e429a66dba47a5b740f3dfd28..a6d9622df92f7033dc42b0c45e4d4a4fee1065fc 100644
 --- a/chrome/browser/resources/settings/clear_browsing_data_dialog/clear_browsing_data_dialog.js
 +++ b/chrome/browser/resources/settings/clear_browsing_data_dialog/clear_browsing_data_dialog.js
-@@ -145,6 +145,24 @@ Polymer({
-     dialogOpenedTime_: {
-       type: Number,
-       value: 0,
-+    },
-+
-+    /** @private */
-+    clearButtonHidden_: {
-+      type: Boolean,
-+      value: false,
-+    },
-+
-+    /** @private */
-+    saveButtonDisabled_: {
-+      type: Boolean,
-+      value: true,
-+    },
-+
-+    /** @private */
-+    saveButtonHidden_: {
-+      type: Boolean,
-+      value: true,
+@@ -148,7 +148,8 @@ Polymer({
      }
    },
  
-@@ -211,6 +229,8 @@ Polymer({
+-  listeners: {'settings-boolean-control-change': 'updateClearButtonState_'},
++  listeners: {'settings-boolean-control-change': 'updateClearButtonState_',
++              'clear-data-on-exit-page-change': 'updateSaveButtonState_' },
+ 
+   /** @private {settings.ClearBrowsingDataBrowserProxy} */
+   browserProxy_: null,
+@@ -211,6 +212,7 @@ Polymer({
      if (!tab)
        return;
      this.clearButtonDisabled_ = this.getSelectedDataTypes_(tab).length == 0;
-+    this.clearButtonHidden_ = (tab.id == 'on-exit-tab');
-+    this.updateSaveButtonState(tab);
++    this.updateButtonsVisibility_();
    },
  
    /**
-@@ -443,4 +463,41 @@ Polymer({
+@@ -306,6 +308,7 @@ Polymer({
+     // Strip the common prefix, i.e. use only "<datatype>".
+     const matches = prefName.match(/^browser\.clear_data\.(\w+)$/);
+     this.set('counters_.' + assert(matches[1]), text);
++    this.$['on-exit-tab'].setCounter(matches[1], text);
+   },
+ 
+   /**
+@@ -443,4 +446,33 @@ Polymer({
    shouldShowFooter_: function() {
      return this.diceEnabled_ && !!this.syncStatus && !!this.syncStatus.signedIn;
    },
 +
 +  /**
-+   * Checks if currently selected data types don't differ from their
-+   * corresponding prefs values and updates Save button accordingly.
++   * Updates Clear and Save buttons visibility based on the selected tab.
 +   * @private
 +   */
-+  updateSaveButtonState: function (tab) {
-+    this.saveButtonHidden_ = (tab.id != 'on-exit-tab');
-+    if (this.saveButtonHidden_)
-+      return;
-+    const checkboxes = tab.querySelectorAll('settings-checkbox');
-+    for (let checkbox of checkboxes) {
-+      if (checkbox.checked != this.get(checkbox.pref.key, this.prefs).value) {
-+        this.saveButtonDisabled_ = false;
-+        return;
-+      }
-+    }
-+    this.saveButtonDisabled_ = true;
++  updateButtonsVisibility_: function () {
++    const isOnExitTab = (this.$.tabs.selectedItem.id == 'on-exit-tab');
++    this.$.clearBrowsingDataConfirm.hidden = isOnExitTab;
++    this.$.saveOnExitSettingsConfirm.hidden = !isOnExitTab;
++  },
++
++  /**
++   * Updates Save button enabled state based on on-exit-tab's changed state.
++   * @private
++   */
++  updateSaveButtonState_: function () {
++    this.$.saveOnExitSettingsConfirm.disabled = !this.$['on-exit-tab'].isModified;
 +  },
 +
 +  /**
@@ -65,15 +56,8 @@ index ba8db3241392d66e429a66dba47a5b740f3dfd28..ef8afbeace3a6c835426b3a9ccc97e93
 +   * @private
 +   */
 +  saveOnExitSettings_: function () {
-+    const tab = this.$.tabs.selectedItem;
-+    if (tab.id != 'on-exit-tab')
-+      return;
-+    const checkboxes = tab.querySelectorAll('settings-checkbox');
-+    checkboxes.forEach((checkbox) => {
-+      if (checkbox.checked != this.get(checkbox.pref.key, this.prefs).value)
-+        checkbox.sendPrefChange();
-+    });
-+    this.saveButtonDisabled_ = true;
++    this.$['on-exit-tab'].saveOnExitSettings();
++    this.updateSaveButtonState_();
 +    if (!this.clearingInProgress_)
 +      this.$.clearBrowsingDataDialog.close();
 +  }

@@ -81,11 +81,8 @@ class BrowserRemovedObserver : public BrowserListObserver {
 
 class BraveClearDataOnExitTest
     : public InProcessBrowserTest,
-      public BraveClearBrowsingData::OnExitTestingCallback,
-      public content::BrowsingDataRemover::Observer {
+      public BraveClearBrowsingData::OnExitTestingCallback {
  public:
-  BraveClearDataOnExitTest() : observer_(this) {}
-
   void SetUpOnMainThread() override {
     BraveClearBrowsingData::SetOnExitTestingCallback(this);
   }
@@ -97,12 +94,9 @@ class BraveClearDataOnExitTest
       content::RunAllPendingInMessageLoop();
 
     // Run the application event loop to completion, which will cycle the
-    // native MessagePump on all platforms. In case we want to wait for the
-    // removal code to reply, do not post the quit yet, do it in the observer's
-    // callback OnBrowsingDataRemoverDone.
-    if (!wait_for_removal_)
-      base::ThreadTaskRunnerHandle::Get()->PostTask(
-          FROM_HERE, base::RunLoop::QuitCurrentWhenIdleClosureDeprecated());
+    // native MessagePump on all platforms.
+    base::ThreadTaskRunnerHandle::Get()->PostTask(
+        FROM_HERE, base::RunLoop::QuitCurrentWhenIdleClosureDeprecated());
 
     base::RunLoop().Run();
 
@@ -111,12 +105,11 @@ class BraveClearDataOnExitTest
 
     // At this point, quit should be for real now.
     ASSERT_EQ(0u, chrome::GetTotalBrowserCount());
+  }
 
+  void TearDownInProcessBrowserTestFixture() override {
     // Verify expected number of calls to remove browsing data.
     EXPECT_EQ(remove_data_call_count_, expected_remove_data_call_count_);
-    // Verify remover completion.
-    if (wait_for_removal_)
-      EXPECT_TRUE(data_remover_done_);
   }
 
   int GetRemoveDataCallCount() {
@@ -130,10 +123,6 @@ class BraveClearDataOnExitTest
   void SetExpectedRemoveDataRemovalMasks(int remove_mask, int origin_mask) {
     expected_remove_mask_ = remove_mask;
     expected_origin_mask_ = origin_mask;
-  }
-
-  void SetWaitForRemoval(bool wait) {
-    wait_for_removal_ = wait;
   }
 
   void SetClearAll(PrefService* prefService) {
@@ -170,7 +159,7 @@ class BraveClearDataOnExitTest
   }
 
   // BraveClearBrowsingData::OnExitTestingCallback implementation.
-  bool BeforeClearOnExitRemoveData(content::BrowsingDataRemover* remover,
+  void BeforeClearOnExitRemoveData(content::BrowsingDataRemover* remover,
                                    int remove_mask,
                                    int origin_mask) override {
     remove_data_call_count_++;
@@ -179,37 +168,14 @@ class BraveClearDataOnExitTest
       EXPECT_EQ(expected_remove_mask_, remove_mask);
     if (expected_origin_mask_ != -1)
       EXPECT_EQ(expected_origin_mask_, origin_mask);
-
-    if (wait_for_removal_) {
-      // Do the removal and supply an observer. TearDownOnMainThread will run
-      // loop until the reply calls OnBrowsingDataRemoverDone, which will post
-      // quit to the loop.
-      observer_.Add(remover);
-      remover->RemoveAndReply(base::Time(), base::Time::Max(), remove_mask,
-                              origin_mask, this);
-    }
-    return wait_for_removal_;
-  }
-
-  // BrowsingDataRemover::Observer implementation.
-  void OnBrowsingDataRemoverDone() override {
-    data_remover_done_ = true;
-    observer_.RemoveAll();
-    base::ThreadTaskRunnerHandle::Get()->PostTask(
-      FROM_HERE, base::RunLoop::QuitCurrentWhenIdleClosureDeprecated());
   }
 
  protected:
   unsigned int browsers_count_ = 1u;
-  bool wait_for_removal_ = false;
   int remove_data_call_count_ = 0;
   int expected_remove_data_call_count_ = 0;
   int expected_remove_mask_ = -1;
   int expected_origin_mask_ = -1;
-  bool data_remover_done_ = false;
-  ScopedObserver<content::BrowsingDataRemover,
-                 content::BrowsingDataRemover::Observer>
-      observer_;
 };
 
 IN_PROC_BROWSER_TEST_F(BraveClearDataOnExitTest, NoPrefsSet) {
@@ -229,20 +195,6 @@ IN_PROC_BROWSER_TEST_F(BraveClearDataOnExitTest, VerifyRemovalMasks) {
 
   // Expect a call to clear data.
   SetExepectedRemoveDataCallCount(1);
-
-  // Tell the application to quit.
-  chrome::ExecuteCommand(browser(), IDC_EXIT);
-}
-
-IN_PROC_BROWSER_TEST_F(BraveClearDataOnExitTest, VerifyRemovalCompletion) {
-  // Clear everything.
-  SetClearAll(browser()->profile()->GetPrefs());
-
-  // Expect a call to clear data.
-  SetExepectedRemoveDataCallCount(1);
-
-  // Wait for data removal completion.
-  SetWaitForRemoval(true);
 
   // Tell the application to quit.
   chrome::ExecuteCommand(browser(), IDC_EXIT);
@@ -361,9 +313,9 @@ IN_PROC_BROWSER_TEST_F(BraveClearDataOnExitTwoBrowsersTest, OneOTRExitsLast) {
   Browser* second_window =
     NewBrowserWindow(browser()->profile()->GetOffTheRecordProfile());
 
-  // Close regular profile window: cleanup should happen.
+  // Close regular profile window.
   CloseBrowserWindow(browser());
-  EXPECT_EQ(1, GetRemoveDataCallCount());
+  EXPECT_EQ(0, GetRemoveDataCallCount());
 
   // Tell the application to quit.
   chrome::ExecuteCommand(second_window, IDC_EXIT);
@@ -397,9 +349,9 @@ IN_PROC_BROWSER_TEST_F(BraveClearDataOnExitTwoBrowsersTest, OneGuestExitsLast) {
   // Open a second browser window with Guest session.
   Browser* guest_window = NewGuestBrowserWindow();
 
-  // Close regular profile window: cleanup should happen.
+  // Close regular profile window.
   CloseBrowserWindow(browser());
-  EXPECT_EQ(1, GetRemoveDataCallCount());
+  EXPECT_EQ(0, GetRemoveDataCallCount());
 
   // Tell the application to quit.
   chrome::ExecuteCommand(guest_window, IDC_EXIT);
@@ -423,7 +375,7 @@ IN_PROC_BROWSER_TEST_F(BraveClearDataOnExitTwoBrowsersTest, TwoProfiles) {
 
   // Close second profile window.
   CloseBrowserWindow(second_profile_window);
-  EXPECT_EQ(1, GetRemoveDataCallCount());
+  EXPECT_EQ(0, GetRemoveDataCallCount());
 
   // Tell the application to quit.
   chrome::ExecuteCommand(browser(), IDC_EXIT);
