@@ -165,10 +165,14 @@ export class Panel extends React.Component<Props, State> {
     }
   }
 
-  openRewardsPage () {
+  openRewardsPage (id?: string) {
     chrome.tabs.create({
-      url: 'chrome://rewards'
+      url: 'brave://rewards'
     })
+
+    if (id) {
+      this.onCloseNotification(id)
+    }
   }
 
   openRewardsAddFundsPage () {
@@ -217,6 +221,7 @@ export class Panel extends React.Component<Props, State> {
     let type: NotificationType = ''
     let text = ''
     let isAlert = ''
+
     switch (notification.type) {
       case RewardsNotificationType.REWARDS_NOTIFICATION_AUTO_CONTRIBUTE:
         {
@@ -262,6 +267,10 @@ export class Panel extends React.Component<Props, State> {
         type = 'insufficientFunds'
         text = getMessage('insufficientFundsNotification')
         break
+      case RewardsNotificationType.REWARDS_NOTIFICATION_ADS_LAUNCH:
+        type = 'ads-launch'
+        text = getMessage('braveAdsLaunchMsg')
+        break
       default:
         type = ''
         break
@@ -293,7 +302,17 @@ export class Panel extends React.Component<Props, State> {
     const { balance, rates, grants } = this.props.rewardsPanelData.walletProperties
     const publisher: RewardsExtension.Publisher | undefined = this.getPublisher()
     const converted = utils.convertBalance(balance.toString(), rates)
-    const notification = this.getNotification()
+    const notification: any = this.getNotification()
+
+    let notificationClick = null
+    if (notification && !notification.hasOwnProperty('alert')) {
+      if (notification.notification.type === 'ads-launch') {
+        notificationClick = this.openRewardsPage.bind(this, notification.notification.id)
+        delete notification.notification['date']
+      } else if (notification.notification.type === 'grant') {
+        notificationClick = this.onFetchCaptcha
+      }
+    }
 
     const pendingTotal = parseFloat(
       (pendingContributionTotal || 0).toFixed(1))
@@ -329,7 +348,7 @@ export class Panel extends React.Component<Props, State> {
         connectedWallet={false}
         grant={grant}
         onGrantHide={this.onGrantHide}
-        onFetchCaptcha={this.onFetchCaptcha}
+        onNotificationClick={notificationClick}
         onSolution={this.onSolution}
         onFinish={this.onFinish}
         convertProbiToFixed={utils.convertProbiToFixed}
