@@ -237,3 +237,10 @@ IN_PROC_BROWSER_TEST_F(BraveSchemeLoadBrowserTest, NotAllowedInPrivateWindow) {
   TestURLIsNotLoadedInPrivateWindow(GURL("brave://settings/"),
                                     GURL("chrome://settings/"));
 }
+
+// Check brave sync page is also not loaded in private widnow.
+IN_PROC_BROWSER_TEST_F(BraveSchemeLoadBrowserTest,
+                       SyncUINotAllowedInPrivateWindow) {
+  TestURLIsNotLoadedInPrivateWindow(GURL("brave://sync/"),
+                                    GURL("chrome://sync/"));
+}
