@@ -9,6 +9,7 @@
 #include "chrome/browser/ui/browser.h"
 #include "chrome/browser/ui/browser_list.h"
 #include "chrome/browser/ui/browser_list_observer.h"
+#include "chrome/browser/ui/tabs/tab_strip_model_observer.h"
 #include "chrome/test/base/in_process_browser_test.h"
 #include "chrome/test/base/ui_test_utils.h"
 #include "content/public/common/url_constants.h"
@@ -16,7 +17,8 @@
 #include "net/dns/mock_host_resolver.h"
 
 class BraveSchemeLoadBrowserTest : public InProcessBrowserTest,
-                                   public BrowserListObserver {
+                                   public BrowserListObserver,
+                                   public TabStripModelObserver {
  public:
   void SetUpOnMainThread() override {
     InProcessBrowserTest::SetUpOnMainThread();
@@ -33,6 +35,16 @@ class BraveSchemeLoadBrowserTest : public InProcessBrowserTest,
   // BrowserListObserver overrides:
   void OnBrowserAdded(Browser* browser) override { popup_ = browser; }
 
+  // TabStripModelObserver overrides:
+  void OnTabStripModelChanged(
+      TabStripModel* tab_strip_model,
+      const TabStripModelChange& change,
+      const TabStripSelectionChange& selection) override {
+    if (change.type() == TabStripModelChange::kInserted) {
+      WaitForLoadStop(active_contents());
+    }
+  }
+
   content::WebContents* active_contents() {
     return browser()->tab_strip_model()->GetActiveWebContents();
   }
@@ -42,6 +54,39 @@ class BraveSchemeLoadBrowserTest : public InProcessBrowserTest,
     ui_test_utils::NavigateToURL(browser(),
                                  embedded_test_server()->GetURL(origin, path));
     return WaitForLoadStop(active_contents());
+  }
+
+  // Check loading |brave_url| in private window is redirected to normal
+  // window and visible url is same as |chrome_url|.
+  void TestURLIsNotLoadedInPrivateWindow(const GURL& brave_url,
+                                         const GURL& chrome_url) {
+    Browser* private_browser = CreateIncognitoBrowser(nullptr);
+    TabStripModel* private_model = private_browser->tab_strip_model();
+
+    // Check normal & private window have one blank tab.
+    EXPECT_EQ("about:blank",
+              private_model->GetActiveWebContents()->GetVisibleURL().spec());
+    EXPECT_EQ(1, private_model->count());
+    EXPECT_EQ("about:blank", active_contents()->GetVisibleURL().spec());
+    EXPECT_EQ(1, browser()->tab_strip_model()->count());
+
+    browser()->tab_strip_model()->AddObserver(this);
+
+    // Load brave_url to private window.
+    NavigateParams params(private_browser, brave_url,
+                          ui::PAGE_TRANSITION_TYPED);
+    Navigate(&params);
+
+    browser()->tab_strip_model()->RemoveObserver(this);
+
+    // brave://settings is mapped to chrome://settings before starting the
+    // navigation.
+    EXPECT_EQ(chrome_url, active_contents()->GetVisibleURL());
+    EXPECT_EQ(2, browser()->tab_strip_model()->count());
+    // Private window stays as initial state.
+    EXPECT_EQ("about:blank",
+              private_model->GetActiveWebContents()->GetVisibleURL().spec());
+    EXPECT_EQ(1, private_browser->tab_strip_model()->count());
   }
 
   Browser* popup_ = nullptr;
@@ -179,4 +224,16 @@ IN_PROC_BROWSER_TEST_F(BraveSchemeLoadBrowserTest,
   EXPECT_TRUE(base::MatchPattern(
       console_delegate.message(),
       "Not allowed to load local resource: brave://settings"));
+}
+
+// Some webuis are not allowed to load in private window.
+// Allowed url list are checked by IsURLAllowedInIncognito().
+// So, corresponding brave scheme url should be filtered as chrome scheme.
+// Ex, brave://settings should be loaded only in normal window because
+// chrome://settings is not allowed. When tyring to loading brave://settings in
+// private window, it should be loaded in normal window instead of private
+// window.
+IN_PROC_BROWSER_TEST_F(BraveSchemeLoadBrowserTest, NotAllowedInPrivateWindow) {
+  TestURLIsNotLoadedInPrivateWindow(GURL("brave://settings/"),
+                                    GURL("chrome://settings/"));
 }
