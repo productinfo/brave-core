@@ -2655,6 +2655,9 @@ static bool ignore_ = false;
     writer.String("non_verified");
     writer.Bool(info.non_verified);
 
+    writer.String("min_visits");
+    writer.Uint(info.min_visits);
+
     writer.EndObject();
   }
 

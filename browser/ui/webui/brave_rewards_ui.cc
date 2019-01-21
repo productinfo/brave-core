@@ -550,11 +550,15 @@ void RewardsDOMHandler::GetAddresses(const base::ListValue* args) {
 
 void RewardsDOMHandler::OnAutoContributePropsReady(
     std::unique_ptr<brave_rewards::AutoContributeProps> props) {
-  rewards_service_->GetContentSiteList(0, 0,
-      props->contribution_min_time, props->reconcile_stamp,
+  rewards_service_->GetContentSiteList(
+      0,
+      0,
+      props->contribution_min_time,
+      props->reconcile_stamp,
       props->contribution_non_verified,
+      props->contribution_min_visits,
       base::Bind(&RewardsDOMHandler::OnContentSiteList,
-        weak_factory_.GetWeakPtr()));
+                 weak_factory_.GetWeakPtr()));
 }
 
 void RewardsDOMHandler::OnContentSiteUpdated(
