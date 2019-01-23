@@ -1,0 +1,13 @@
+diff --git a/chrome/browser/resources/md_bookmarks/toolbar.js b/chrome/browser/resources/md_bookmarks/toolbar.js
+index fe52d5d13f2b5f3349796daee0997e4dfc7328e4..27860c1116480a2933c91cebb64fa6b8db774112 100644
+--- a/chrome/browser/resources/md_bookmarks/toolbar.js
++++ b/chrome/browser/resources/md_bookmarks/toolbar.js
+@@ -55,7 +55,7 @@ Polymer({
+ 
+   /** @return {CrToolbarSearchFieldElement} */
+   get searchField() {
+-    return /** @type {CrToolbarElement} */ (this.$$('cr-toolbar'))
++    return /** @type {CrToolbarElement} */ (this.$$('br-toolbar'))
+         .getSearchField();
+   },
+ 

@@ -1,0 +1,39 @@
+diff --git a/chrome/browser/resources/md_bookmarks/toolbar.html b/chrome/browser/resources/md_bookmarks/toolbar.html
+index c09c8cdc33ae3f0bcd230e6191c4e91b74880fa4..9fa3e11bca965a962b6bc60898ea1454ab25cdd2 100644
+--- a/chrome/browser/resources/md_bookmarks/toolbar.html
++++ b/chrome/browser/resources/md_bookmarks/toolbar.html
+@@ -1,6 +1,6 @@
+ <link rel="import" href="chrome://resources/html/polymer.html">
+ 
+-<link rel="import" href="chrome://resources/cr_elements/cr_toolbar/cr_toolbar.html">
++<link rel="import" href="chrome://brave-resources/br_elements/br_toolbar/br_toolbar.html">
+ <link rel="import" href="chrome://resources/cr_elements/cr_toolbar/cr_toolbar_selection_overlay.html">
+ <link rel="import" href="chrome://resources/polymer/v1_0/paper-icon-button/paper-icon-button-light.html">
+ <link rel="import" href="chrome://bookmarks/shared_style.html">
+@@ -21,7 +21,7 @@
+         border-color: white;
+       }
+ 
+-      cr-toolbar {
++      br-toolbar {
+         color: #fff;
+         flex: 1;
+         --cr-toolbar-field-margin:
+@@ -34,7 +34,7 @@
+         --selection-overlay-max-width: var(--card-max-width);
+       }
+     </style>
+-    <cr-toolbar page-name="$i18n{title}"
++    <br-toolbar page-name="$i18n{title}"
+         has-overlay$="[[showSelectionOverlay]]"
+         clear-label="$i18n{clearSearch}"
+         search-prompt="$i18n{searchPrompt}"
+@@ -50,7 +50,7 @@
+           <div></div>
+         </button>
+       </paper-icon-button-light>
+-    </cr-toolbar>
++    </br-toolbar>
+     <cr-toolbar-selection-overlay show="[[showSelectionOverlay]]"
+         delete-label="$i18n{delete}"
+         cancel-label="$i18n{cancel}"

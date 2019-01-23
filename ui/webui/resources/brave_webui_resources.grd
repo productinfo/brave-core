@@ -15,9 +15,9 @@
     </includes>
 
     <structures>
-      <!-- <if expr="not is_android and not is_ios">
+      <if expr="not is_android and not is_ios">
         <part file="br_elements_resources.grdp" />
-      </if> -->
+      </if>
     </structures>
   </release>
 </grit>
