@@ -51,6 +51,7 @@ void BraveProfileManager::InitTorProfileUserPrefs(Profile* profile) {
   pref_service->SetBoolean(tor::prefs::kProfileUsingTor, true);
   pref_service->SetString(prefs::kWebRTCIPHandlingPolicy,
                           content::kWebRTCIPHandlingDisableNonProxiedUdp);
+
 }
 
 void BraveProfileManager::InitProfileUserPrefs(Profile* profile) {
