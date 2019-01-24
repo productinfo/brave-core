@@ -23,6 +23,7 @@
 #include "url/gurl.h"
 
 class CTPParser;
+class HostContentSettingsMap;
 class TrackingProtectionServiceTest;
 
 namespace brave_shields {
@@ -38,16 +39,28 @@ class TrackingProtectionService : public BaseLocalDataFilesObserver {
                           const std::string& tab_host);
   scoped_refptr<base::SequencedTaskRunner> GetTaskRunner();
 
-  // implementation of BaseLocalDataFilesObserver
+  bool ShouldStoreState(HostContentSettingsMap* map, 
+    int render_process_id, int render_frame_id, const GURL& top_origin_url, 
+    const GURL& origin_url);
+
+  void DispatchBlockedEvent(int render_process_id, int render_frame_id, 
+    const GURL& request_url);
+  
+ protected:
+  bool Init() override;
+  void Cleanup() override;
   void OnComponentReady(const std::string& component_id,
                         const base::FilePath& install_dir,
                         const std::string& manifest) override;
+
+  void ParseStorageTrackersData();
 
  private:
   void OnDATFileDataReady();
   std::vector<std::string> GetThirdPartyHosts(const std::string& base_host);
 
   brave_shields::DATFileDataBuffer buffer_;
+  brave_shields::DATFileDataBuffer storage_trackers_buffer_;
 
   std::unique_ptr<CTPParser> tracking_protection_client_;
   // TODO: Temporary hack which matches both browser-laptop and Android code
@@ -57,6 +70,9 @@ class TrackingProtectionService : public BaseLocalDataFilesObserver {
   std::mutex third_party_hosts_mutex_;
 
   SEQUENCE_CHECKER(sequence_checker_);
+  std::vector<std::string> first_party_storage_trackers_;
+  bool first_party_storage_trackers_initailized_;
+
   base::WeakPtrFactory<TrackingProtectionService> weak_factory_;
   DISALLOW_COPY_AND_ASSIGN(TrackingProtectionService);
 };
