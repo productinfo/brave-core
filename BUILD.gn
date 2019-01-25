@@ -60,7 +60,7 @@ group("resources") {
 if (is_mac) {
   group("framework_bundle_data") {
     deps = [
-      "vendor/brave-extension:brave_extension_framework_bundle_data",
+      "components/brave_extension/extension/brave-extension:brave_extension_framework_bundle_data",
       "components/brave_rewards/resources/extension:framework_bundle_data",
     ]
   }
