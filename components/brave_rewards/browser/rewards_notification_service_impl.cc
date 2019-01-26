@@ -30,9 +30,9 @@ RewardsNotificationServiceImpl::RewardsNotificationServiceImpl(Profile* profile)
     : profile_(profile)
 {
 #if BUILDFLAG(ENABLE_EXTENSIONS)
-  extension_rewards_notification_service_observer_ = 
+  extension_rewards_notification_service_observer_ =
           std::make_unique<ExtensionRewardsNotificationServiceObserver>(
-              profile);
+              this, profile);
   AddObserver(extension_rewards_notification_service_observer_.get());
 #endif
   ReadRewardsNotificationsJSON();
