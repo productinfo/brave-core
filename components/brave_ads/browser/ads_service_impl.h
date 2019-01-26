@@ -68,6 +68,7 @@ class AdsServiceImpl : public AdsService,
   void OnMediaStart(SessionID tab_id) override;
   void OnMediaStop(SessionID tab_id) override;
   void ClassifyPage(const std::string& url, const std::string& page) override;
+  void MaybeShowFirstLaunchNotification(bool rewards_enabled) override;
 
   void Shutdown() override;
 
@@ -179,8 +180,7 @@ class AdsServiceImpl : public AdsService,
   void MaybeStart(bool restart);
   void NotificationTimedOut(uint32_t timer_id,
                             const std::string& notification_id);
-  bool ShouldShowAdsNotification() const;
-  void MaybeShowFirstLaunchNotification();
+  bool ShouldShowAdsNotification();
   void FirstLaunchNotificationTimedOut(uint32_t timer_id,
                                        const std::string& notification_id);
 
@@ -194,6 +194,7 @@ class AdsServiceImpl : public AdsService,
   const base::FilePath base_path_;
   std::map<uint32_t, std::unique_ptr<base::OneShotTimer>> timers_;
   uint32_t next_timer_id_;
+  uint32_t ads_launch_id_;
   std::unique_ptr<BundleStateDatabase> bundle_state_backend_;
   NotificationDisplayService* display_service_;  // NOT OWNED
 #if !defined(OS_ANDROID)

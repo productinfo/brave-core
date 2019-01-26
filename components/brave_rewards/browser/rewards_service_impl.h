@@ -30,6 +30,7 @@
 #include "ui/gfx/image/image.h"
 #include "brave/components/brave_rewards/browser/publisher_banner.h"
 #include "brave/components/brave_rewards/browser/rewards_service_private_observer.h"
+#include "brave/components/brave_ads/browser/ads_service.h"
 
 #if BUILDFLAG(ENABLE_EXTENSIONS)
 #include "brave/components/brave_rewards/browser/extension_rewards_service_observer.h"
@@ -387,6 +388,7 @@ class RewardsServiceImpl : public RewardsService,
   const base::FilePath publisher_state_path_;
   const base::FilePath publisher_info_db_path_;
   const base::FilePath publisher_list_path_;
+  std::unique_ptr<brave_ads::AdsService> ads_service_;
   std::unique_ptr<PublisherInfoDatabase> publisher_info_backend_;
   std::unique_ptr<RewardsNotificationServiceImpl> notification_service_;
   base::ObserverList<RewardsServicePrivateObserver> private_observers_;

@@ -65,6 +65,8 @@
 #include "ui/gfx/image/image.h"
 #include "url/gurl.h"
 #include "url/url_canon_stdstring.h"
+#include "brave/components/brave_ads/browser/ads_service.h"
+#include "brave/components/brave_ads/browser/ads_service_factory.h"
 
 #if !defined(OS_ANDROID)
 #include "brave/components/brave_rewards/resources/grit/brave_rewards_resources.h"
@@ -295,6 +297,7 @@ RewardsServiceImpl::RewardsServiceImpl(Profile* profile)
       publisher_state_path_(profile_->GetPath().Append(kPublisher_state)),
       publisher_info_db_path_(profile->GetPath().Append(kPublisher_info_db)),
       publisher_list_path_(profile->GetPath().Append(kPublishers_list)),
+      ads_service_(brave_ads::AdsServiceFactory::GetForProfile(profile_)),
       publisher_info_backend_(
           new PublisherInfoDatabase(publisher_info_db_path_)),
       notification_service_(new RewardsNotificationServiceImpl(profile)),
@@ -325,7 +328,6 @@ void RewardsServiceImpl::Init() {
   AddObserver(extension_rewards_service_observer_.get());
   private_observers_.AddObserver(private_observer_.get());
 #endif
-
   StartLedger();
 }
 
@@ -1360,11 +1362,17 @@ void RewardsServiceImpl::GetRewardsMainEnabled(
 
 void RewardsServiceImpl::SetRewardsMainEnabledPref(bool enabled) {
   profile_->GetPrefs()->SetBoolean(prefs::kBraveRewardsEnabled, enabled);
-  SetRewardsMainEnabledMigratedPref(true);
+  SetRewardsMainEnabledMigratedPref(enabled);
 }
 
 void RewardsServiceImpl::SetRewardsMainEnabledMigratedPref(bool enabled) {
-  profile_->GetPrefs()->SetBoolean(prefs::kBraveRewardsEnabledMigrated, enabled);
+  // If the migration has completed, check if we should show ads notification
+  // This is done here to prevent a race condition in AdsServiceImpl
+  // where the RewardsEnabled pref may not have been populated yet.
+  if (!profile_->GetPrefs()->GetBoolean(prefs::kBraveRewardsEnabledMigrated)) {
+    ads_service_->MaybeShowFirstLaunchNotification(enabled);
+  }
+  profile_->GetPrefs()->SetBoolean(prefs::kBraveRewardsEnabledMigrated, true);
 }
 
 void RewardsServiceImpl::GetPublisherMinVisitTime(
