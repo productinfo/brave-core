@@ -1,8 +1,8 @@
-/* This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this file,
- * You can obtain one at http://mozilla.org/MPL/2.0/. */
+// Copyright (c) 2019 The Brave Authors. All rights reserved.
 
 #include "brave/components/brave_shields/browser/brave_shields_util.h"
+
+#include <memory>
 
 #include "base/task/post_task.h"
 #include "brave/common/shield_exceptions.h"
@@ -140,7 +140,6 @@ void GetRenderFrameInfo(const URLRequest* request,
   }
   if (!content::ResourceRequestInfo::GetRenderFrameForRequest(
           request, render_process_id, render_frame_id)) {
-
     const content::WebSocketHandshakeRequestInfo* websocket_info =
       content::WebSocketHandshakeRequestInfo::ForRequest(request);
     if (websocket_info) {

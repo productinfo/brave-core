@@ -1,6 +1,4 @@
-/* This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this file,
- * You can obtain one at http://mozilla.org/MPL/2.0/. */
+// Copyright (c) 2019 The Brave Authors. All rights reserved.
 
 #ifndef BRAVE_COMPONENTS_BRAVE_SHIELDS_BROWSER_TRACKING_PROTECTION_SERVICE_H_
 #define BRAVE_COMPONENTS_BRAVE_SHIELDS_BROWSER_TRACKING_PROTECTION_SERVICE_H_
@@ -18,7 +16,7 @@
 #include "base/sequence_checker.h"
 #include "base/sequenced_task_runner.h"
 #include "brave/components/brave_shields/browser/base_local_data_files_observer.h"
-#include "brave/browser/renderer_host/buildflags/buildflags.h" //For STP
+#include "brave/browser/renderer_host/buildflags/buildflags.h"  // For STP
 #include "brave/components/brave_shields/browser/base_brave_shields_service.h"
 #include "brave/components/brave_shields/browser/dat_file_util.h"
 #include "content/public/common/resource_type.h"
@@ -50,11 +48,9 @@ class TrackingProtectionService : public BaseLocalDataFilesObserver {
                         const std::string& manifest) override;
 
 #if BUILDFLAG(BRAVE_STP_ENABLED)
-  bool ShouldStoreState(HostContentSettingsMap* map, 
-    int render_process_id, int render_frame_id, const GURL& top_origin_url, 
+  bool ShouldStoreState(HostContentSettingsMap* map,
+    int render_process_id, int render_frame_id, const GURL& top_origin_url,
     const GURL& origin_url);
-  void DispatchBlockedEvent(int render_process_id, int render_frame_id, 
-    const GURL& request_url);
 
   void SetStartingSiteForRenderFrame(GURL starting_site, int render_process_id,
     int render_frame_id);
@@ -64,7 +60,7 @@ class TrackingProtectionService : public BaseLocalDataFilesObserver {
   void ModifyRenderFrameKey(int old_render_process_id, int old_render_frame_id,
     int new_render_process_id, int new_render_frame_id);
 #endif
-  
+
  protected:
 #if BUILDFLAG(BRAVE_STP_ENABLED)
   void ParseStorageTrackersData();
@@ -94,7 +90,8 @@ class TrackingProtectionService : public BaseLocalDataFilesObserver {
   brave_shields::DATFileDataBuffer buffer_;
 
   std::unique_ptr<CTPParser> tracking_protection_client_;
-  // TODO: Temporary hack which matches both browser-laptop and Android code
+  // TODO(@bbondy): Temporary hack which matches both browser-laptop and
+  // Android code
   std::vector<std::string> white_list_;
   std::vector<std::string> third_party_base_hosts_;
   std::map<std::string, std::vector<std::string>> third_party_hosts_cache_;

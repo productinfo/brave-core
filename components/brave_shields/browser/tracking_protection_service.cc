@@ -1,6 +1,4 @@
-/* This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this file,
- * You can obtain one at http://mozilla.org/MPL/2.0/. */
+// Copyright (c) 2019 The Brave Authors. All rights reserved.
 
 #include "brave/components/brave_shields/browser/tracking_protection_service.h"
 
@@ -9,7 +7,7 @@
 
 #include "base/base_paths.h"
 #include "base/bind.h"
-#include "brave/browser/renderer_host/buildflags/buildflags.h" //For STP
+#include "brave/browser/renderer_host/buildflags/buildflags.h"  // For STP
 #include "base/command_line.h"
 #include "base/logging.h"
 #include "base/macros.h"
@@ -147,8 +145,8 @@ void TrackingProtectionService::DeleteRenderFrameKey(int render_process_id,
   }
 }
 
-bool TrackingProtectionService::ShouldStoreState(HostContentSettingsMap* map, 
-  int render_process_id, int render_frame_id, const GURL& top_origin_url, 
+bool TrackingProtectionService::ShouldStoreState(HostContentSettingsMap* map,
+  int render_process_id, int render_frame_id, const GURL& top_origin_url,
   const GURL& origin_url) {
   const base::CommandLine& command_line =
       *base::CommandLine::ForCurrentProcess();
@@ -156,7 +154,7 @@ bool TrackingProtectionService::ShouldStoreState(HostContentSettingsMap* map,
     return true;
   }
 
-  if(first_party_storage_trackers_.empty()) {
+  if (first_party_storage_trackers_.empty()) {
     LOG(INFO) << "First party storage trackers list is empty";
     return true;
   }
@@ -172,8 +170,8 @@ bool TrackingProtectionService::ShouldStoreState(HostContentSettingsMap* map,
     return true;
   }
 
-  bool allow_brave_shields = starting_site == GURL() ? false : 
-    IsAllowContentSetting(map, starting_site, GURL(), 
+  bool allow_brave_shields = starting_site == GURL() ? false :
+    IsAllowContentSetting(map, starting_site, GURL(),
       CONTENT_SETTINGS_TYPE_PLUGINS, brave_shields::kBraveShields);
 
   if (!allow_brave_shields) {
@@ -181,7 +179,7 @@ bool TrackingProtectionService::ShouldStoreState(HostContentSettingsMap* map,
   }
 
   bool allow_trackers = starting_site == GURL() ? true : IsAllowContentSetting(
-      map, starting_site, GURL(), CONTENT_SETTINGS_TYPE_PLUGINS, 
+      map, starting_site, GURL(), CONTENT_SETTINGS_TYPE_PLUGINS,
       brave_shields::kTrackers);
 
   if (allow_trackers) {
@@ -189,8 +187,8 @@ bool TrackingProtectionService::ShouldStoreState(HostContentSettingsMap* map,
   }
 
   // deny storage if host is not found in the tracker list
-  return !(std::find(first_party_storage_trackers_.begin(), 
-    first_party_storage_trackers_.end(), host) 
+  return !(std::find(first_party_storage_trackers_.begin(),
+    first_party_storage_trackers_.end(), host)
     != first_party_storage_trackers_.end());
 }
 
@@ -206,7 +204,7 @@ void TrackingProtectionService::ParseStorageTrackersData() {
     base::StringPiece(trackers.data(), trackers.size()), ",",
     base::TRIM_WHITESPACE, base::SPLIT_WANT_NONEMPTY);
 
-  if(first_party_storage_trackers_.empty()) {
+  if (first_party_storage_trackers_.empty()) {
     LOG(ERROR) << "No first party trackers found";
     return;
   }
@@ -269,7 +267,8 @@ void TrackingProtectionService::OnComponentReady(
 
   GetTaskRunner()->PostTaskAndReply(
       FROM_HERE,
-      base::Bind(&GetDATFileData, navigation_tracking_protection_path, &buffer_),
+      base::Bind(&GetDATFileData, navigation_tracking_protection_path,
+        &buffer_),
       base::Bind(&TrackingProtectionService::OnDATFileDataReady,
                  weak_factory_.GetWeakPtr()));
 
@@ -343,7 +342,8 @@ TrackingProtectionService::GetThirdPartyHosts(const std::string& base_host) {
   return hosts;
 }
 
-scoped_refptr<base::SequencedTaskRunner> TrackingProtectionService::GetTaskRunner() {
+scoped_refptr<base::SequencedTaskRunner>
+  TrackingProtectionService::GetTaskRunner() {
   // We share the same task runner for all ad-block and TP code
   return g_brave_browser_process->ad_block_service()->GetTaskRunner();
 }
@@ -353,8 +353,10 @@ scoped_refptr<base::SequencedTaskRunner> TrackingProtectionService::GetTaskRunne
 // The tracking protection factory. Using the Brave Shields as a singleton
 // is the job of the browser process.
 std::unique_ptr<TrackingProtectionService> TrackingProtectionServiceFactory() {
-  std::unique_ptr<TrackingProtectionService> service = std::make_unique<TrackingProtectionService>();
-  g_brave_browser_process->local_data_files_service()->AddObserver(service.get());
+  std::unique_ptr<TrackingProtectionService> service =
+    std::make_unique<TrackingProtectionService>();
+  g_brave_browser_process->local_data_files_service()->AddObserver(
+    service.get());
   return service;
 }
 

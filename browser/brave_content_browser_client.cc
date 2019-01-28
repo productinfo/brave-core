@@ -1,8 +1,9 @@
-/* This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this file,
- * You can obtain one at http://mozilla.org/MPL/2.0/. */
+// Copyright (c) 2019 The Brave Authors. All rights reserved.
 
 #include "brave/browser/brave_content_browser_client.h"
+
+#include <string>
+#include <utility>
 
 #include "base/bind.h"
 #include "base/json/json_reader.h"
@@ -10,7 +11,7 @@
 #include "brave/browser/brave_browser_main_extra_parts.h"
 #include "brave/browser/brave_browser_process_impl.h"
 #include "brave/browser/extensions/brave_tor_client_updater.h"
-#include "brave/browser/renderer_host/buildflags/buildflags.h" // For STP
+#include "brave/browser/renderer_host/buildflags/buildflags.h"  // For STP
 #include "brave/browser/renderer_host/brave_navigation_ui_data.h"
 #include "brave/browser/tor/tor_profile_service_factory.h"
 #include "brave/common/brave_cookie_blocking.h"
@@ -94,7 +95,8 @@ bool HandleURLReverseRewrite(GURL* url,
 
 }  // namespace
 
-BraveContentBrowserClient::BraveContentBrowserClient(ChromeFeatureListCreator* chrome_feature_list_creator) :
+BraveContentBrowserClient::BraveContentBrowserClient(ChromeFeatureListCreator*
+  chrome_feature_list_creator) :
     ChromeContentBrowserClient(chrome_feature_list_creator)
 {}
 
@@ -119,8 +121,9 @@ void BraveContentBrowserClient::BrowserURLHandlerCreated(
   ChromeContentBrowserClient::BrowserURLHandlerCreated(handler);
 }
 
-bool BraveContentBrowserClient::AllowAccessCookie(const GURL& url, const GURL& first_party,
-    content::ResourceContext* context, int render_process_id, int render_frame_id) {
+bool BraveContentBrowserClient::AllowAccessCookie(const GURL& url,
+  const GURL& first_party, content::ResourceContext* context,
+  int render_process_id, int render_frame_id) {
   GURL tab_origin =
       BraveShieldsWebContentsObserver::GetTabURLFromRenderFrameInfo(
           render_process_id, render_frame_id, -1).GetOrigin();
@@ -185,7 +188,8 @@ BraveContentBrowserClient::AllowWebBluetooth(
     content::BrowserContext* browser_context,
     const url::Origin& requesting_origin,
     const url::Origin& embedding_origin) {
-  return content::ContentBrowserClient::AllowWebBluetoothResult::BLOCK_GLOBALLY_DISABLED;
+  return content::ContentBrowserClient::AllowWebBluetoothResult
+    ::BLOCK_GLOBALLY_DISABLED;
 }
 
 bool BraveContentBrowserClient::HandleExternalProtocol(
@@ -204,7 +208,8 @@ bool BraveContentBrowserClient::HandleExternalProtocol(
   }
 
   return ChromeContentBrowserClient::HandleExternalProtocol(
-      url, web_contents_getter, child_id, navigation_data, is_main_frame, page_transition, has_user_gesture, method, headers);
+      url, web_contents_getter, child_id, navigation_data, is_main_frame,
+      page_transition, has_user_gesture, method, headers);
 }
 
 void BraveContentBrowserClient::RegisterOutOfProcessServices(
@@ -233,7 +238,6 @@ BraveContentBrowserClient::GetNavigationUIData(
   TorProfileServiceFactory::SetTorNavigationUIData(profile,
                                                    navigation_ui_data.get());
   return std::move(navigation_ui_data);
-
 }
 
 std::unique_ptr<base::Value>
@@ -301,7 +305,7 @@ void BraveContentBrowserClient::MaybeHideReferrer(
           GURL(),
           CONTENT_SETTINGS_TYPE_PLUGINS,
           brave_shields::kBraveShields);
-   brave_shields::ShouldSetReferrer(allow_referrers, shields_up,
+  brave_shields::ShouldSetReferrer(allow_referrers, shields_up,
                                     referrer->url, document_url, request_url,
                                     request_url.GetOrigin(),
                                     referrer->policy,
