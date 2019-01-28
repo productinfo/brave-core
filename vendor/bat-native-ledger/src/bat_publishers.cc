@@ -313,7 +313,6 @@ void BatPublishers::onFetchFavIconDBResponse(
 }
 
 void BatPublishers::OnPublisherInfoSaved(
-    uint64_t window_id,
     ledger::Result result,
     std::unique_ptr<ledger::PublisherInfo> info) {
   if (result != ledger::Result::LEDGER_OK || !info.get()) {
@@ -400,7 +399,7 @@ void BatPublishers::onSetPanelExcludeInternal(ledger::PUBLISHER_EXCLUDE exclude,
   ledger::VisitData visit_data;
   std::string publisherKey = publisher_info->id;
 
-  ledger_->SetPublisherInfo(std::move(publisher_info), windowId);
+  ledger_->SetPublisherInfo(std::move(publisher_info));
 
   OnExcludedSitesChanged(publisherKey);
 }
