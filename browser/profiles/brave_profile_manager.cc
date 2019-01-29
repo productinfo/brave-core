@@ -13,6 +13,7 @@
 #include "brave/common/tor/tor_constants.h"
 #include "brave/components/brave_ads/browser/ads_service_factory.h"
 #include "brave/components/brave_rewards/browser/rewards_service_factory.h"
+#include "brave/components/brave_shields/browser/brave_shields_util.h"
 #include "brave/components/brave_sync/brave_sync_service_factory.h"
 #include "chrome/browser/browser_process.h"
 #include "chrome/common/chrome_constants.h"
@@ -100,6 +101,8 @@ void BraveProfileManager::DoFinalInitForServices(Profile* profile,
   brave_sync::BraveSyncServiceFactory::GetForProfile(profile);
   brave_ads::AdsServiceFactory::GetForProfile(profile);
   brave_rewards::RewardsServiceFactory::GetForProfile(profile);
+
+  brave_shields::SetShieldsDefaultsFromCommandLineForTesting(profile);
 }
 
 void BraveProfileManager::LaunchTorProcess(Profile* profile) {
