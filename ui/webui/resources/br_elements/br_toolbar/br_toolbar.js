@@ -1,6 +1,11 @@
-// Copyright 2016 The Chromium Authors. All rights reserved.
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file.
+// This Source Code Form is subject to the terms of the Mozilla Public
+// License, v. 2.0. If a copy of the MPL was not distributed with this file,
+// you can obtain one at http://mozilla.org/MPL/2.0/.
+
+const customCurrentWebUINameMap = {
+  extensions: 'settings',
+  sync: 'settings',
+}
 
 Polymer({
   is: 'br-toolbar',
@@ -113,5 +118,19 @@ Polymer({
   historyTitle: loadTimeData.getString('brToolbarHistoryTitle'),
   settingsTitle: loadTimeData.getString('brToolbarSettingsTitle'),
   bookmarksTitle: loadTimeData.getString('brToolbarBookmarksTitle'),
-  downloadsTitle: loadTimeData.getString('brToolbarDownloadsTitle')
+  downloadsTitle: loadTimeData.getString('brToolbarDownloadsTitle'),
+
+  getNavItemSelectedClassName: function(itemName) {
+    // which navigation item is the current page?
+    let currentWebUIName = document.location.hostname
+    // override name from hostname, if applicable
+    if (customCurrentWebUINameMap[currentWebUIName])
+      currentWebUIName = customCurrentWebUINameMap[currentWebUIName]
+    // does it match the item calling this function?
+    const itemWebUIName = itemName
+    if (itemName === document.location.hostname)
+      return '-selected'
+    // not selected
+    return ''
+  }
 });
