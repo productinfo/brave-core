@@ -16,6 +16,10 @@
 #include "bat/ledger/publisher_info.h"
 #include "bat_helper.h"
 
+FORWARD_DECLARE_TEST(BatPublishersTest, calcScoreConsts);
+
+class BatPublishersTest;
+
 namespace bat_ledger {
 class LedgerImpl;
 }
@@ -132,6 +136,8 @@ class BatPublishers : public ledger::LedgerCallbackHandler {
   bool isVerified(const std::string& publisher_id);
 
  private:
+  FRIEND_TEST_ALL_PREFIXES(::BatPublishersTest, calcScoreConsts);
+  friend class ::BatPublishersTest;
 
   void onPublisherActivitySave(uint64_t windowId,
                                const ledger::VisitData& visit_data,
